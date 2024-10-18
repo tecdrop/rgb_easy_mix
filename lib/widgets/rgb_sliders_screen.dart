@@ -186,6 +186,22 @@ class _RGBTextField extends StatelessWidget {
   /// Called when the value of the RGB component changes.
   final void Function(int)? onChanged;
 
+  /// Parses the value of the text field and calls the onChanged callback.
+  void _parseValue(String value) {
+    // Try to parse the value, it should be an integer between 0 and 255
+    int intValue = int.tryParse(value) ?? -1;
+    final bool isValid = intValue >= 0 && intValue <= 255;
+
+    // If the value is not valid, clamp it to the valid range
+    if (!isValid) {
+      intValue = intValue.clamp(0, 255);
+      controller.text = intValue.toString();
+    }
+
+    // Call the onChanged callback
+    onChanged?.call(intValue);
+  }
+
   @override
   Widget build(BuildContext context) {
     final OutlineInputBorder border = OutlineInputBorder(
@@ -194,35 +210,19 @@ class _RGBTextField extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: TextFormField(
+      child: TextField(
         controller: controller,
-        autovalidateMode: AutovalidateMode.onUserInteraction,
-
-        // maxLength: 3,
         decoration: InputDecoration(
           enabledBorder: border,
           focusedBorder: border,
-          errorBorder: border,
-          focusedErrorBorder: border.copyWith(
-            borderSide: const BorderSide(color: Colors.red),
-          ),
         ),
         style: TextStyle(color: foregroundColor),
         keyboardType: TextInputType.number,
         inputFormatters: [
           LengthLimitingTextInputFormatter(3),
+          FilteringTextInputFormatter.digitsOnly,
         ],
-        validator: (String? value) {
-          if (value == null || value.isEmpty) {
-            return 'Please enter a value';
-          }
-          final int intValue = int.tryParse(value) ?? -1;
-          if (intValue < 0 || intValue > 255) {
-            return '[0, 255]';
-          }
-          return null;
-        },
-        onChanged: (String value) => onChanged?.call(int.parse(value)),
+        onChanged: _parseValue,
       ),
     );
   }
