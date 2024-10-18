@@ -25,13 +25,16 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.transparent,
       ),
       body: Center(
-        child: RGBSliders(
-          initialColor: _color,
-          onColorChanged: (Color color) {
-            setState(() {
-              _color = color;
-            });
-          },
+        child: Padding(
+          padding: const EdgeInsets.only(left: 32, right: 48),
+          child: RGBSliders(
+            initialColor: _color,
+            onColorChanged: (Color color) {
+              setState(() {
+                _color = color;
+              });
+            },
+          ),
         ),
       ),
     );

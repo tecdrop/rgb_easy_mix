@@ -4,6 +4,7 @@
 // https://github.com/tecdrop/rgb_easy_mix/blob/main/LICENSE.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../utils/color_utils.dart' as color_utils;
 
@@ -115,7 +116,7 @@ class _RGBSlidersState extends State<RGBSliders> {
         defaultVerticalAlignment: TableCellVerticalAlignment.middle,
         columnWidths: const <int, TableColumnWidth>{
           0: FlexColumnWidth(),
-          1: FixedColumnWidth(48.0),
+          1: FixedColumnWidth(64.0),
         },
         children: <TableRow>[
           _buildRGBTableRow(_RGB.red, contrastColor),
@@ -163,6 +164,7 @@ class _RGBSlider extends StatelessWidget {
   }
 }
 
+/// A text field that controls a single RGB channel of a color.
 class _RGBTextField extends StatelessWidget {
   const _RGBTextField({
     super.key, // ignore: unused_element
@@ -178,6 +180,7 @@ class _RGBTextField extends StatelessWidget {
   /// The foreground color of the text field.
   final Color foregroundColor;
 
+  /// The text controller for the text field.
   final TextEditingController controller;
 
   /// Called when the value of the RGB component changes.
@@ -185,20 +188,42 @@ class _RGBTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      // initialValue: value.toString(),
-      controller: controller,
-      decoration: InputDecoration(
-        enabledBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: foregroundColor),
+    final OutlineInputBorder border = OutlineInputBorder(
+      borderSide: BorderSide(color: foregroundColor),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: TextFormField(
+        controller: controller,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+
+        // maxLength: 3,
+        decoration: InputDecoration(
+          enabledBorder: border,
+          focusedBorder: border,
+          errorBorder: border,
+          focusedErrorBorder: border.copyWith(
+            borderSide: const BorderSide(color: Colors.red),
+          ),
         ),
-        focusedBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: foregroundColor),
-        ),
+        style: TextStyle(color: foregroundColor),
+        keyboardType: TextInputType.number,
+        inputFormatters: [
+          LengthLimitingTextInputFormatter(3),
+        ],
+        validator: (String? value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter a value';
+          }
+          final int intValue = int.tryParse(value) ?? -1;
+          if (intValue < 0 || intValue > 255) {
+            return '[0, 255]';
+          }
+          return null;
+        },
+        onChanged: (String value) => onChanged?.call(int.parse(value)),
       ),
-      style: TextStyle(color: foregroundColor),
-      keyboardType: TextInputType.number,
-      onChanged: (String value) => onChanged?.call(int.parse(value)),
     );
   }
 }
