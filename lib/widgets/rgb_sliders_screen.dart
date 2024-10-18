@@ -21,12 +21,12 @@ const Map<_RGB, Color> _rgbColors = <_RGB, Color>{
 class RGBSliders extends StatefulWidget {
   const RGBSliders({
     super.key,
-    required this.color,
+    required this.initialColor,
     required this.onColorChanged,
   });
 
   /// The color to control using the RGB sliders.
-  final Color color;
+  final Color initialColor;
 
   /// Called when the color is changed by the user using the RGB sliders.
   final ValueChanged<Color>? onColorChanged;
@@ -36,53 +36,76 @@ class RGBSliders extends StatefulWidget {
 }
 
 class _RGBSlidersState extends State<RGBSliders> {
-  late final TextEditingController _redController;
+  /// The color being controlled by the RGB sliders.
+  late Color _color;
 
-  late final TextEditingController _greenController;
-
-  late final TextEditingController _blueController;
+  /// Text controllers for the RGB text fields.
+  late final Map<_RGB, TextEditingController> _rgbControllers = <_RGB, TextEditingController>{
+    _RGB.red: TextEditingController(text: _color.red.toString()),
+    _RGB.green: TextEditingController(text: _color.green.toString()),
+    _RGB.blue: TextEditingController(text: _color.blue.toString()),
+  };
 
   @override
   void initState() {
     super.initState();
 
-    _redController = TextEditingController(text: widget.color.red.toString());
-    _greenController = TextEditingController(text: widget.color.green.toString());
-    _blueController = TextEditingController(text: widget.color.blue.toString());
+    _color = widget.initialColor;
   }
 
-  /// Updates the color by changing the specified RGB channel to the specified value and calls the
+  /// Updates the color by changing the specified RGB channel to the specified value.
+  ///
+  /// Optionally, updates the corresponding text field with the new value, and calls the
   /// onColorChanged callback.
-  void _updateColor(_RGB rgb, int value, bool updateTextField) {
-    final Color updatedColor = switch (rgb) {
-      _RGB.red => widget.color.withRed(value),
-      _RGB.green => widget.color.withGreen(value),
-      _RGB.blue => widget.color.withBlue(value),
-    };
+  void _updateColor(_RGB rgb, int value, {bool updateTextField = false}) {
+    setState(() {
+      _color = switch (rgb) {
+        _RGB.red => _color.withRed(value),
+        _RGB.green => _color.withGreen(value),
+        _RGB.blue => _color.withBlue(value),
+      };
+    });
 
     if (updateTextField) {
-      switch (rgb) {
-        case _RGB.red:
-          _redController.text = value.toString();
-          break;
-        case _RGB.green:
-          _greenController.text = value.toString();
-          break;
-        case _RGB.blue:
-          _blueController.text = value.toString();
-          break;
-      }
+      _rgbControllers[rgb]!.text = value.toString();
     }
 
-    widget.onColorChanged?.call(updatedColor);
+    widget.onColorChanged?.call(_color);
+  }
+
+  /// Returns the value of the specified RGB channel of the specified color.
+  static int _getColorRGB(Color color, _RGB rgb) {
+    return switch (rgb) {
+      _RGB.red => color.red,
+      _RGB.green => color.green,
+      _RGB.blue => color.blue,
+    };
+  }
+
+  /// Builds a table row with a slider and a text field for the specified RGB channel.
+  TableRow _buildRGBTableRow(_RGB rgb, Color contrastColor) {
+    return TableRow(
+      children: <Widget>[
+        _RGBSlider(
+          value: _getColorRGB(_color, rgb),
+          rgbColor: _rgbColors[rgb]!,
+          foregroundColor: contrastColor,
+          onChanged: (int value) => _updateColor(rgb, value, updateTextField: true),
+        ),
+        _RGBTextField(
+          value: _getColorRGB(_color, rgb),
+          foregroundColor: contrastColor,
+          controller: _rgbControllers[rgb]!,
+          onChanged: (int value) => _updateColor(rgb, value),
+        ),
+      ],
+    );
   }
 
   /// The main build method of the screen.
   @override
   Widget build(BuildContext context) {
-    print('RGBSliders build');
-
-    final Color contrastColor = color_utils.contrastOf(widget.color);
+    final Color contrastColor = color_utils.contrastOf(_color);
 
     return SliderTheme(
       data: const SliderThemeData(
@@ -95,54 +118,9 @@ class _RGBSlidersState extends State<RGBSliders> {
           1: FixedColumnWidth(48.0),
         },
         children: <TableRow>[
-          TableRow(
-            children: <Widget>[
-              _RGBSlider(
-                value: widget.color.red,
-                rgbColor: _rgbColors[_RGB.red]!,
-                foregroundColor: contrastColor,
-                onChanged: (int value) => _updateColor(_RGB.red, value, true),
-              ),
-              _RGBTextField(
-                value: widget.color.red,
-                foregroundColor: contrastColor,
-                controller: _redController,
-                onChanged: (int value) => _updateColor(_RGB.red, value, false),
-              ),
-            ],
-          ),
-          TableRow(
-            children: <Widget>[
-              _RGBSlider(
-                value: widget.color.green,
-                rgbColor: _rgbColors[_RGB.green]!,
-                foregroundColor: contrastColor,
-                onChanged: (int value) => _updateColor(_RGB.green, value, true),
-              ),
-              _RGBTextField(
-                value: widget.color.green,
-                foregroundColor: contrastColor,
-                controller: _greenController,
-                onChanged: (int value) => _updateColor(_RGB.green, value, false),
-              ),
-            ],
-          ),
-          TableRow(
-            children: <Widget>[
-              _RGBSlider(
-                value: widget.color.blue,
-                rgbColor: _rgbColors[_RGB.blue]!,
-                foregroundColor: contrastColor,
-                onChanged: (int value) => _updateColor(_RGB.blue, value, true),
-              ),
-              _RGBTextField(
-                value: widget.color.blue,
-                foregroundColor: contrastColor,
-                controller: _blueController,
-                onChanged: (int value) => _updateColor(_RGB.blue, value, false),
-              ),
-            ],
-          ),
+          _buildRGBTableRow(_RGB.red, contrastColor),
+          _buildRGBTableRow(_RGB.green, contrastColor),
+          _buildRGBTableRow(_RGB.blue, contrastColor),
         ],
       ),
     );
@@ -171,37 +149,8 @@ class _RGBSlider extends StatelessWidget {
   /// Called when the value of the slider changes.
   final void Function(int)? onChanged;
 
-  // /// A map of RGB channels to their corresponding colors.
-  // static const Map<_RGB, Color> _rgbColors = <_RGB, Color>{
-  //   _RGB.red: Color(0xFFFF0000),
-  //   _RGB.green: Color(0xFF00FF00),
-  //   _RGB.blue: Color(0xFF0000FF),
-  // };
-
-  // /// Returns the value of the specified RGB channel of the specified color.
-  // static double _getColorRGB(Color color, _RGB rgb) {
-  //   return switch (rgb) {
-  //     _RGB.red => color.red,
-  //     _RGB.green => color.green,
-  //     _RGB.blue => color.blue,
-  //   }
-  //       .toDouble();
-  // }
-
-  // /// Returns the specified color after updating the specified RGB channel with the specified value.
-  // static Color _updateColor(Color color, _RGB rgb, double value) {
-  //   final int intValue = value.toInt();
-  //   return switch (rgb) {
-  //     _RGB.red => color.withRed(intValue),
-  //     _RGB.green => color.withGreen(intValue),
-  //     _RGB.blue => color.withBlue(intValue),
-  //   };
-  // }
-
   @override
   Widget build(BuildContext context) {
-    print('_RGBSlider $rgbColor build');
-
     return Slider(
       value: value.toDouble(),
       min: 0,
