@@ -19,6 +19,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Calculate horizontal padding based on the screen width.
+    final double horizontalPadding = MediaQuery.of(context).size.width * 0.15;
+
     return Scaffold(
       backgroundColor: _color,
       appBar: AppBar(
@@ -26,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.only(left: 32, right: 48),
+          padding: EdgeInsets.only(left: horizontalPadding - 16, right: horizontalPadding),
           child: RGBSliders(
             initialColor: _color,
             onColorChanged: (Color color) {

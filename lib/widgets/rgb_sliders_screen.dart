@@ -156,6 +156,7 @@ class _RGBSlider extends StatelessWidget {
       value: value.toDouble(),
       min: 0,
       max: 255,
+      divisions: 255,
       activeColor: foregroundColor,
       inactiveColor: foregroundColor,
       thumbColor: rgbColor,
@@ -209,7 +210,7 @@ class _RGBTextField extends StatelessWidget {
     );
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      padding: const EdgeInsets.symmetric(vertical: 24.0),
       child: TextField(
         controller: controller,
         decoration: InputDecoration(
