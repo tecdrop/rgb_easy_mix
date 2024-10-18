@@ -19,6 +19,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print('HomeScreen build');
+
     return Scaffold(
       backgroundColor: _color,
       appBar: AppBar(
@@ -26,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Center(
         child: RGBSliders(
-          initialColor: Colors.white,
+          color: _color,
           onColorChanged: (Color color) {
             setState(() {
               _color = color;
