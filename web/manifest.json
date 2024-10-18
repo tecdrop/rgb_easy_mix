@@ -1,8 +1,9 @@
 {
-    "name": "rgb_easy_mix",
-    "short_name": "rgb_easy_mix",
+    "name": "RGB EasyMix",
+    "short_name": "RGB EasyMix",
     "start_url": ".",
     "display": "standalone",
+    "display_override": ["window-controls-overlay"],
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
     "description": "A new Flutter project.",
