@@ -7,26 +7,48 @@ import 'package:flutter/material.dart';
 
 import '../utils/color_utils.dart' as color_utils;
 
+/// RGB channel enumeration.
+enum _RGB { red, green, blue }
+
+/// A map of RGB channels to their corresponding colors.
+const Map<_RGB, Color> _rgbColors = <_RGB, Color>{
+  _RGB.red: Color(0xFFFF0000),
+  _RGB.green: Color(0xFF00FF00),
+  _RGB.blue: Color(0xFF0000FF),
+};
+
 /// The RGB Sliders Screen stateful widget.
 class RGBSliders extends StatelessWidget {
   const RGBSliders({
     super.key,
     required this.color,
     required this.onColorChanged,
+    required this.redController,
+    required this.greenController,
+    required this.blueController,
   });
 
-  /// The initial color to apply to the RGB sliders.
+  /// The color to control using the RGB sliders.
   final Color color;
 
   /// Called when the color is changed by the user using the RGB sliders.
   final ValueChanged<Color>? onColorChanged;
 
+  final TextEditingController redController;
+
+  final TextEditingController greenController;
+
+  final TextEditingController blueController;
+
+  /// Updates the color by changing the specified RGB channel to the specified value and calls the
+  /// onColorChanged callback.
   void _updateColor(_RGB rgb, int value) {
     final Color updatedColor = switch (rgb) {
       _RGB.red => color.withRed(value),
       _RGB.green => color.withGreen(value),
       _RGB.blue => color.withBlue(value),
     };
+
     onColorChanged?.call(updatedColor);
   }
 
@@ -51,9 +73,15 @@ class RGBSliders extends StatelessWidget {
           TableRow(
             children: <Widget>[
               _RGBSlider(
-                rgb: _RGB.red,
                 value: color.red,
-                contrastColor: contrastColor,
+                rgbColor: _rgbColors[_RGB.red]!,
+                foregroundColor: contrastColor,
+                onChanged: (int value) => _updateColor(_RGB.red, value),
+              ),
+              _RGBTextField(
+                value: color.red,
+                foregroundColor: contrastColor,
+                controller: redController,
                 onChanged: (int value) => _updateColor(_RGB.red, value),
               ),
             ],
@@ -61,9 +89,15 @@ class RGBSliders extends StatelessWidget {
           TableRow(
             children: <Widget>[
               _RGBSlider(
-                rgb: _RGB.green,
                 value: color.green,
-                contrastColor: contrastColor,
+                rgbColor: _rgbColors[_RGB.green]!,
+                foregroundColor: contrastColor,
+                onChanged: (int value) => _updateColor(_RGB.green, value),
+              ),
+              _RGBTextField(
+                value: color.green,
+                foregroundColor: contrastColor,
+                controller: greenController,
                 onChanged: (int value) => _updateColor(_RGB.green, value),
               ),
             ],
@@ -71,9 +105,15 @@ class RGBSliders extends StatelessWidget {
           TableRow(
             children: <Widget>[
               _RGBSlider(
-                rgb: _RGB.blue,
                 value: color.blue,
-                contrastColor: contrastColor,
+                rgbColor: _rgbColors[_RGB.blue]!,
+                foregroundColor: contrastColor,
+                onChanged: (int value) => _updateColor(_RGB.blue, value),
+              ),
+              _RGBTextField(
+                value: color.blue,
+                foregroundColor: contrastColor,
+                controller: blueController,
                 onChanged: (int value) => _updateColor(_RGB.blue, value),
               ),
             ],
@@ -84,37 +124,34 @@ class RGBSliders extends StatelessWidget {
   }
 }
 
-/// RGB channel enumeration.
-enum _RGB { red, green, blue }
-
 /// A slider that controls a single RGB channel of a color.
 class _RGBSlider extends StatelessWidget {
   const _RGBSlider({
     super.key, // ignore: unused_element
-    required this.rgb,
     required this.value,
-    required this.contrastColor,
+    required this.rgbColor,
+    required this.foregroundColor,
     this.onChanged,
   });
 
-  /// The RGB channel to control.
-  final _RGB rgb;
-
-  /// The color to control.
+  /// The value of the slider.
   final int value;
 
-  /// The contrast color to use for the slider.
-  final Color contrastColor;
+  /// The color of the slider (red, green, or blue).
+  final Color rgbColor;
+
+  /// The foreground color of the slider.
+  final Color foregroundColor;
 
   /// Called when the value of the slider changes.
   final void Function(int)? onChanged;
 
-  /// A map of RGB channels to their corresponding colors.
-  static const Map<_RGB, Color> _rgbColors = <_RGB, Color>{
-    _RGB.red: Color(0xFFFF0000),
-    _RGB.green: Color(0xFF00FF00),
-    _RGB.blue: Color(0xFF0000FF),
-  };
+  // /// A map of RGB channels to their corresponding colors.
+  // static const Map<_RGB, Color> _rgbColors = <_RGB, Color>{
+  //   _RGB.red: Color(0xFFFF0000),
+  //   _RGB.green: Color(0xFF00FF00),
+  //   _RGB.blue: Color(0xFF0000FF),
+  // };
 
   // /// Returns the value of the specified RGB channel of the specified color.
   // static double _getColorRGB(Color color, _RGB rgb) {
@@ -138,16 +175,56 @@ class _RGBSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('_RGBSlider $rgb build');
+    print('_RGBSlider $rgbColor build');
 
     return Slider(
       value: value.toDouble(),
       min: 0,
       max: 255,
-      activeColor: contrastColor,
-      inactiveColor: contrastColor,
-      thumbColor: _rgbColors[rgb],
+      activeColor: foregroundColor,
+      inactiveColor: foregroundColor,
+      thumbColor: rgbColor,
       onChanged: (double value) => onChanged?.call(value.toInt()),
+    );
+  }
+}
+
+class _RGBTextField extends StatelessWidget {
+  const _RGBTextField({
+    super.key, // ignore: unused_element
+    required this.value,
+    required this.foregroundColor,
+    required this.controller,
+    this.onChanged,
+  });
+
+  /// The RGB component value being edited.
+  final int value;
+
+  /// The foreground color of the text field.
+  final Color foregroundColor;
+
+  final TextEditingController controller;
+
+  /// Called when the value of the RGB component changes.
+  final void Function(int)? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      // initialValue: value.toString(),
+      controller: controller,
+      decoration: InputDecoration(
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: foregroundColor),
+        ),
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: foregroundColor),
+        ),
+      ),
+      style: TextStyle(color: foregroundColor),
+      keyboardType: TextInputType.number,
+      onChanged: (String value) => onChanged?.call(int.parse(value)),
     );
   }
 }
