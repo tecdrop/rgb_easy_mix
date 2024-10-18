@@ -17,10 +17,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   Color _color = Colors.white;
 
-  final TextEditingController _redController = TextEditingController();
-  final TextEditingController _greenController = TextEditingController();
-  final TextEditingController _blueController = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     print('HomeScreen build');
@@ -33,13 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Center(
         child: RGBSliders(
           color: _color,
-          redController: _redController,
-          greenController: _greenController,
-          blueController: _blueController,
           onColorChanged: (Color color) {
-            _redController.text = color.red.toString();
-            _greenController.text = color.green.toString();
-            _blueController.text = color.blue.toString();
             setState(() {
               _color = color;
             });
